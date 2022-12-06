@@ -1,22 +1,32 @@
 import express from "express";
-import config from "./config";
-// TODO: import router from routes/
-import apiRouter from "./routes";
 import morgan from "morgan";
+import cors from "cors";
+import apiRouter from "./routes";
+import config from "./config";
+import { errorHandler } from "./middlewares/errorHandler";
 
 const app = express();
 
 app.use(express.json());
-app.use(morgan("common"));
 
-// TODO: use the imported router to handle all requests
+app.use(cors());
+
+app.use(morgan("dev"));
+
+app.use(express.static("public"));
+
 app.use("/api", apiRouter);
 
-app.use((err, req, res, next) => {
-  console.error(err);
-  res.json({ name: err.name, msg: err.message });
+app.use((req, res, next) => {
+  try {
+    res.sendFile(join(__dirname, "../../public/index.html"));
+  } catch (error) {
+    next(error);
+  }
 });
 
-app.listen(config.port, () => {
-  console.log(`Server listening on port ${config.port}...`);
-});
+app.use(errorHandler);
+
+app.listen(config.port || 5000, () =>
+  console.log(`Server listening on port ${config.port}...`)
+);
